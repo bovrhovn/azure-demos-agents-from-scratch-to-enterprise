@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Common/">
+    <Project Path="ASE.Libraries/ASE.Libraries.csproj" />
+  </Folder>
+  <Folder Name="/Scratch/">
+    <Project Path="ASE.SimpleAgent/ASE.SimpleAgent.csproj" />
+    <Project Path="ASE.SimpleAgentSearch/ASE.SimpleAgentSearch.csproj" />
+  </Folder>
+  <Folder Name="/Search/" />
+</Solution>
