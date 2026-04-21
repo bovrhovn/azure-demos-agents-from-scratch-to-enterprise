@@ -1,0 +1,24 @@
+﻿FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
+EXPOSE 8080
+EXPOSE 8081
+
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
+COPY ["ASE.EnterpriseApi/", "ASE.EnterpriseApi/"]
+RUN dotnet restore "ASE.EnterpriseApi/ASE.EnterpriseApi.csproj"
+COPY . .
+WORKDIR "/src/ASE.EnterpriseApi"
+RUN dotnet build "./ASE.EnterpriseApi.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
+FROM build AS publish
+ARG BUILD_CONFIGURATION=Release
+RUN dotnet publish "./ASE.EnterpriseApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+ENV ASPNETCORE_HTTP_PORTS=80
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "ASE.EnterpriseApi.dll"]

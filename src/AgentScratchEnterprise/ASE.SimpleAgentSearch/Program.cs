@@ -71,13 +71,13 @@ AIAgent agent = client
 var question = AnsiConsole.Ask<string>("Ask your question",
     "What is the return policy?");
 AnsiConsole.MarkupLine("[green]Question:[/]" + question);
-AgentSession session = await agent.CreateSessionAsync();
-var agentResponse = await agent.RunAsync(question, session);
-AnsiConsole.MarkupLine("[green]Answer: [/]" + agentResponse.Text);
+var agentResponse = await agent.RunAsync(question);
+AnsiConsole.MarkupLine("[green]Answer:[/] " + agentResponse.Text);
 
 static Task<IEnumerable<TextSearchProvider.TextSearchResult>> SearchAdapter(string query, CancellationToken cancellationToken)
 {
-    var results = DocumentSearchAdapter.Search(query)
+    var data = new DocumentSearchAdapter();
+    var results = data.Search(query)
         .Select(r => new TextSearchProvider.TextSearchResult
         {
             SourceName = r.SourceName,
