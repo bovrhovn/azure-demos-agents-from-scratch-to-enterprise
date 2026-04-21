@@ -7,4 +7,5 @@
     <Project Path="ASE.SimpleAgentSearch/ASE.SimpleAgentSearch.csproj" />
   </Folder>
   <Folder Name="/Search/" />
+  <Project Path="../../tests/ASE.Libraries.Tests/ASE.Libraries.Tests.csproj" />
 </Solution>
