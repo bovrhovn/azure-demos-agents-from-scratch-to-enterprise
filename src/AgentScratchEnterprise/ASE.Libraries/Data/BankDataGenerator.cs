@@ -1,7 +1,7 @@
-using Bogus;
 using ASE.Libraries.Models;
+using Bogus;
 
-namespace ASE.Libraries;
+namespace ASE.Libraries.Data;
 
 public static class BankDataGenerator
 {

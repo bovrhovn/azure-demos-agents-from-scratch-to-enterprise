@@ -1,10 +1,10 @@
 ﻿using ASE.Libraries.Models;
 
-namespace ASE.Libraries;
+namespace ASE.Libraries.Search;
 
 public class AzureSearchDocumentSearchAdapter : ISearchService
 {
-    public IEnumerable<SearchResult> Search(string query, int records = 10)
+    public List<SearchResult> Search(string query, int records = 10)
     {
         throw new NotImplementedException();
     }

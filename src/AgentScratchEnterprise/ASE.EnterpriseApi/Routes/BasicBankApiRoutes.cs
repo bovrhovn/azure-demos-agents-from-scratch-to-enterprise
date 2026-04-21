@@ -1,5 +1,8 @@
 ﻿using ASE.Libraries;
+using ASE.Libraries.Data;
+using ASE.Libraries.General;
 using ASE.Libraries.Models;
+using ASE.Libraries.Search;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -34,7 +37,7 @@ public static class EnterpriseApi
         return Task.FromResult(data);
     }
 
-    private static Task SearchAsync([FromServices] ILogger logger,
+    private static Task<List<SearchResult>> SearchAsync([FromServices] ILogger logger,
         [FromServices] ISearchService data,
         [FromQuery] string query)
     {
@@ -42,6 +45,6 @@ public static class EnterpriseApi
             DateTime.UtcNow, query);
         var results = data.Search(query);
         logger.LogInformation("Search returned {Count} results for query {Query}", results.Count(), query);
-        return Task.FromResult(results);
+        return Task.FromResult(results.ToList());
     }
 }

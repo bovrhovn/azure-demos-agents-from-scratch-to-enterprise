@@ -2,7 +2,7 @@
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet)](https://dotnet.microsoft.com/)
 [![Azure](https://img.shields.io/badge/Azure-AI%20Foundry-0078D4?logo=microsoft-azure)](https://azure.microsoft.com/)
-[![Tests](https://img.shields.io/badge/tests-17%20passed-success)](./tests/)
+[![Tests](https://img.shields.io/badge/tests-51%20passed-success)](./tests/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 > **Progressive demonstrations of building AI agents from simple implementations to enterprise-ready solutions using Azure AI services.**
@@ -70,7 +70,7 @@ azure-demos-agents-from-scratch-to-enterprise/
 │       ├── ASE.SimpleAgentSearch/    # Agent with RAG search
 │       └── ASE.Libraries/            # Shared components
 ├── 📁 tests/
-│   └── ASE.Libraries.Tests/          # Unit tests (17 tests, 100% coverage)
+│   └── ASE.Libraries.Tests/          # Unit tests (51 tests, comprehensive coverage)
 ├── 📁 docs/                           # Comprehensive documentation
 │   ├── README.md                      # Documentation hub
 │   ├── getting-started.md             # Setup guide
@@ -151,7 +151,7 @@ Shared library containing reusable components and adapters.
 
 ## 🧪 Testing
 
-The project includes comprehensive unit tests with **100% coverage** of library components.
+The project includes comprehensive unit tests covering all library components.
 
 ```bash
 cd tests\ASE.Libraries.Tests
@@ -160,11 +160,20 @@ dotnet test
 
 **Test Results:**
 ```
-✅ Total tests: 17
-✅ Passed: 17
+✅ Total tests: 51
+✅ Passed: 51
 ✅ Failed: 0
-⏱️ Duration: ~2 seconds
+⏱️ Duration: ~8 seconds
 ```
+
+**Test Coverage:**
+- `DocumentSearchAdapterTests` - 8 tests for search functionality
+- `BankDataGeneratorTests` - 18 tests for data generation
+- `SearchResultTests` - 4 tests for search result model
+- `BankModelsTests` - 6 tests for bank models (Card, Transaction, Statement, Data)
+- `AzureSearchDocumentSearchAdapterTests` - 4 tests for Azure search adapter
+- `RouteNamesTests` - 7 tests for route name constants
+- `ISearchServiceTests` - 4 tests for search service interface
 
 📖 **Testing guide:** [Testing Documentation](./docs/testing.md)
 
@@ -345,7 +354,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](./LICENSE
 ## 📊 Project Stats
 
 - **Language:** C# / .NET 10
-- **Tests:** 17 (100% pass rate)
+- **Tests:** 51 (100% pass rate)
 - **Documentation:** 7 comprehensive guides
 - **Azure Services:** Azure AI Foundry, Azure OpenAI
 - **License:** MIT

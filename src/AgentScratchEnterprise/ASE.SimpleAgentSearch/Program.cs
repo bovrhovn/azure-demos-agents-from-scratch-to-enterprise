@@ -1,4 +1,5 @@
 ﻿using ASE.Libraries;
+using ASE.Libraries.Search;
 using Azure.AI.OpenAI;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.Exporter;

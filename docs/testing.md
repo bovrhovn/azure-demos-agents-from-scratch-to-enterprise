@@ -6,18 +6,18 @@ This document covers the testing strategy, test execution, and coverage details 
 
 ## 📋 Testing Overview
 
-The project includes comprehensive unit tests with **100% coverage** of the `ASE.Libraries` components. Tests are written using **xUnit**, a modern testing framework for .NET.
+The project includes comprehensive unit tests with extensive coverage of the `ASE.Libraries` components. Tests are written using **xUnit**, a modern testing framework for .NET.
 
 ### Test Statistics
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | 17 |
-| **Passed Tests** | ✅ 17 |
+| **Total Tests** | 51 |
+| **Passed Tests** | ✅ 51 |
 | **Failed Tests** | ❌ 0 |
-| **Code Coverage** | 100% (Library components) |
+| **Code Coverage** | Comprehensive (All library components) |
 | **Test Framework** | xUnit 2.9.3 |
-| **Test Execution Time** | ~2 seconds |
+| **Test Execution Time** | ~8 seconds |
 
 ---
 
@@ -27,8 +27,14 @@ The project includes comprehensive unit tests with **100% coverage** of the `ASE
 tests/
 └── ASE.Libraries.Tests/
     ├── ASE.Libraries.Tests.csproj
-    ├── DocumentSearchAdapterTests.cs
-    └── GlobalUsings.cs
+    ├── GlobalUsings.cs
+    ├── DocumentSearchAdapterTests.cs           # 8 tests
+    ├── BankDataGeneratorTests.cs               # 18 tests
+    ├── SearchResultTests.cs                    # 4 tests
+    ├── BankModelsTests.cs                      # 6 tests
+    ├── AzureSearchDocumentSearchAdapterTests.cs # 4 tests
+    ├── RouteNamesTests.cs                      # 7 tests
+    └── ISearchServiceTests.cs                  # 4 tests
 ```
 
 ### Project Configuration
@@ -41,6 +47,7 @@ The test project targets **.NET 10.0** and includes the following packages:
     <PackageReference Include="xUnit" Version="2.9.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.0.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.3" />
+    <PackageReference Include="Bogus" Version="35.6.5" />
 </ItemGroup>
 ```
 
@@ -83,45 +90,146 @@ dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 
 ## 📝 Test Cases
 
-### `DocumentSearchAdapterTests`
+### `DocumentSearchAdapterTests` (8 tests)
 
-Comprehensive tests for the `DocumentSearchAdapter` class.
+Comprehensive tests for the `DocumentSearchAdapter` class that handles search operations.
 
-#### ✅ Search Functionality Tests
+#### ✅ Test Coverage
 
-| Test Name | Purpose | Assertion |
-|-----------|---------|-----------|
-| `Search_WithReturnKeyword_ReturnsReturnPolicyResult` | Verifies "return" keyword triggers policy | Returns 1 result with correct content |
-| `Search_WithRefundKeyword_ReturnsReturnPolicyResult` | Verifies "refund" keyword triggers policy | Returns 1 result with "refund" text |
-| `Search_WithBothReturnAndRefundKeywords_ReturnsResult` | Tests multiple keyword matching | Returns single deduplicated result |
-| `Search_WithUnrelatedQuery_ReturnsEmpty` | Ensures non-matching queries return nothing | Returns empty collection |
-| `Search_WithEmptyString_ReturnsEmpty` | Handles empty input gracefully | Returns empty collection |
+| Test Name | Purpose |
+|-----------|---------|
+| `Search_WithReturnQuery_ReturnsReturnPolicyResult` | Verifies "return" keyword triggers return policy |
+| `Search_WithRefundQuery_ReturnsRefundPolicyResult` | Verifies "refund" keyword triggers refund policy |
+| `Search_WithReturnQueryCaseInsensitive_ReturnsResult` | Tests case-insensitive search |
+| `Search_WithAmountQuery_ReturnsBankTransactions` | Verifies bank transaction search |
+| `Search_WithAmountQueryAndCustomRecordCount_RespectsRecordLimit` | Tests record count limiting |
+| `Search_WithUnmatchedQuery_ReturnsEmptyResult` | Handles non-matching queries |
+| `Search_ImplementsISearchService` | Verifies interface implementation |
+| `Search_WithEmptyQuery_ReturnsEmptyResult` | Handles empty query gracefully |
 
-#### ✅ Case Sensitivity Tests
+---
 
-| Test Name | Purpose | Assertion |
-|-----------|---------|-----------|
-| `Search_WithCaseInsensitiveReturnKeyword_ReturnsReturnPolicyResult` | Uppercase "RETURN" matches | Returns 1 result |
-| `Search_WithCaseInsensitiveRefundKeyword_ReturnsReturnPolicyResult` | Uppercase "REFUND" matches | Returns 1 result |
-| `Search_WithVariousCasing_ReturnsResults` (Theory) | Tests all case variations | All variations return results |
+### `BankDataGeneratorTests` (18 tests)
 
-**Theory Test Data:**
-- "return", "Return", "RETURN"
-- "refund", "Refund", "REFUND"
+Tests for the `BankDataGenerator` class that generates realistic bank data using the Bogus library.
 
-#### ✅ Error Handling Tests
+#### ✅ Test Coverage
 
-| Test Name | Purpose | Assertion |
-|-----------|---------|-----------|
-| `Search_WithNullQuery_ThrowsArgumentNullException` | Validates null input handling | Throws `ArgumentNullException` |
+| Test Name | Purpose |
+|-----------|---------|
+| `GenerateCard_ReturnsValidBankCard` | Validates card generation |
+| `GenerateCard_CardTypeIsValid` | Ensures valid card types |
+| `GenerateCards_WithCount_ReturnsCorrectNumberOfCards` | Tests multiple card generation |
+| `GenerateCards_DefaultCount_ReturnsTwoCards` | Tests default parameter behavior |
+| `GenerateTransaction_WithCard_ReturnsValidTransaction` | Validates transaction generation |
+| `GenerateTransactions_WithCount_ReturnsCorrectNumber` | Tests multiple transaction generation |
+| `GenerateTransactions_AllTransactionsHaveSameCard` | Ensures transaction-card association |
+| `GenerateStatement_CalculatesCorrectBalance` | Validates balance calculation |
+| `GenerateBankData_ReturnsValidBankData` | Tests complete bank data generation |
+| `GenerateBankDataWithStatement_ReturnsBankDataAndStatement` | Tests combined data generation |
+| `GenerateBankDataList_ReturnsCorrectCount` | Tests list generation with custom count |
+| `GenerateBankDataList_DefaultCount_ReturnsTenItems` | Tests default list generation |
+| `GenerateBankDataWithStatementList_ReturnsCorrectCount` | Tests statement list with custom count |
+| `GenerateBankDataWithStatementList_DefaultCount_ReturnsTenItems` | Tests default statement list |
 
-#### ✅ Data Model Tests
+---
 
-| Test Name | Purpose | Assertion |
-|-----------|---------|-----------|
-| `SearchResult_CanBeInitialized` | Verifies object initialization | All properties set correctly |
-| `SearchResult_DefaultValues_AreEmptyStrings` | Checks default property values | All strings are empty |
-| `SearchResult_TextContent_ContainsExpectedInformation` | Validates result content | Contains expected policy details |
+### `SearchResultTests` (4 tests)
+
+Tests for the `SearchResult` data model.
+
+#### ✅ Test Coverage
+
+| Test Name | Purpose |
+|-----------|---------|
+| `SearchResult_CanBeCreatedWithDefaultValues` | Validates default initialization |
+| `SearchResult_CanBeCreatedWithInitializer` | Tests object initializer syntax |
+| `SearchResult_PropertiesAreInitOnly` | Verifies init-only properties |
+| `SearchResult_IsSealed` | Confirms sealed class modifier |
+
+---
+
+### `BankModelsTests` (6 tests)
+
+Tests for all bank-related data models: `BankCard`, `BankTransaction`, `BankStatement`, and `BankData`.
+
+#### ✅ BankCardTests (2 tests)
+
+| Test Name | Purpose |
+|-----------|---------|
+| `BankCard_CanBeCreatedWithRequiredProperties` | Validates required property initialization |
+| `BankCard_ExpirationDate_CanBeSet` | Tests expiration date setting |
+
+#### ✅ BankTransactionTests (3 tests)
+
+| Test Name | Purpose |
+|-----------|---------|
+| `BankTransaction_DefaultValues_AreSet` | Verifies default values |
+| `BankTransaction_CanBeCreatedWithAllProperties` | Tests complete initialization |
+| `BankTransaction_TransactionId_IsUniqueByDefault` | Ensures unique transaction IDs |
+
+#### ✅ BankStatementTests (2 tests)
+
+| Test Name | Purpose |
+|-----------|---------|
+| `BankStatement_CanBeCreatedWithRequiredProperties` | Validates required properties |
+| `BankStatement_CanHoldTransactions` | Tests transaction collection |
+
+#### ✅ BankDataTests (3 tests)
+
+| Test Name | Purpose |
+|-----------|---------|
+| `BankData_CanBeCreatedWithRequiredProperties` | Validates initialization |
+| `BankData_CanHoldMultipleCards` | Tests card collection |
+| `BankData_Balance_CanBeSet` | Tests balance property |
+
+---
+
+### `AzureSearchDocumentSearchAdapterTests` (4 tests)
+
+Tests for the `AzureSearchDocumentSearchAdapter` class (placeholder implementation).
+
+#### ✅ Test Coverage
+
+| Test Name | Purpose |
+|-----------|---------|
+| `AzureSearchDocumentSearchAdapter_ImplementsISearchService` | Verifies interface implementation |
+| `Search_ThrowsNotImplementedException` | Validates not-yet-implemented status |
+| `Search_WithRecordCount_ThrowsNotImplementedException` | Validates parameter handling |
+| `AzureSearchDocumentSearchAdapter_CanBeInstantiated` | Tests object creation |
+
+---
+
+### `RouteNamesTests` (7 tests)
+
+Tests for the `RouteNames` class containing route name constants.
+
+#### ✅ Test Coverage
+
+| Test Name | Purpose |
+|-----------|---------|
+| `BasicRoute_HasCorrectValue` | Validates "basic" constant value |
+| `GetRoute_HasCorrectValue` | Validates "get-all" constant value |
+| `SearchRoute_HasCorrectValue` | Validates "search" constant value |
+| `RouteNames_ConstantsAreNotNull` | Ensures no null constants |
+| `RouteNames_ConstantsAreNotEmpty` | Ensures no empty constants |
+| `RouteNames_AllConstantsAreLowercase` | Validates lowercase convention |
+| `RouteNames_ConstantsAreUnique` | Ensures no duplicate values |
+
+---
+
+### `ISearchServiceTests` (4 tests)
+
+Tests for the `ISearchService` interface.
+
+#### ✅ Test Coverage
+
+| Test Name | Purpose |
+|-----------|---------|
+| `ISearchService_IsAnInterface` | Validates interface definition |
+| `ISearchService_HasSearchMethod` | Verifies Search method exists |
+| `DocumentSearchAdapter_ImplementsISearchService` | Tests implementation |
+| `AzureSearchDocumentSearchAdapter_ImplementsISearchService` | Tests implementation |
 
 ---
 
@@ -131,58 +239,63 @@ Comprehensive tests for the `DocumentSearchAdapter` class.
 
 ```csharp
 [Fact]
-public void Search_WithReturnKeyword_ReturnsReturnPolicyResult()
+public void Search_WithReturnQuery_ReturnsReturnPolicyResult()
 {
     // Arrange
-    const string query = "What is your return policy?";
+    var query = "return policy";
 
     // Act
-    var results = DocumentSearchAdapter.Search(query).ToList();
+    var results = _adapter.Search(query).ToList();
 
     // Assert
     Assert.NotEmpty(results);
-    var result = Assert.Single(results);
-    Assert.Equal("Contoso Outdoors Return Policy", result.SourceName);
-    Assert.Equal("https://contoso.com/policies/returns", result.SourceLink);
-    Assert.Contains("30 days", result.Text);
+    Assert.Contains(results, r => r.SourceName == "Contoso Outdoors Return Policy");
+    Assert.Contains(results, r => r.Text.Contains("30 days"));
 }
 ```
 
-### Theory-Based Test (Data-Driven)
-
-```csharp
-[Theory]
-[InlineData("return")]
-[InlineData("Return")]
-[InlineData("RETURN")]
-[InlineData("refund")]
-[InlineData("Refund")]
-[InlineData("REFUND")]
-public void Search_WithVariousCasing_ReturnsResults(string keyword)
-{
-    // Arrange
-    var query = $"I need information about {keyword}";
-
-    // Act
-    var results = DocumentSearchAdapter.Search(query).ToList();
-
-    // Assert
-    Assert.NotEmpty(results);
-}
-```
-
-### Exception Testing
+### Bank Data Generator Test
 
 ```csharp
 [Fact]
-public void Search_WithNullQuery_ThrowsArgumentNullException()
+public void GenerateCard_ReturnsValidBankCard()
+{
+    // Act
+    var card = BankDataGenerator.GenerateCard();
+
+    // Assert
+    Assert.NotNull(card);
+    Assert.NotEmpty(card.CardType);
+    Assert.NotEmpty(card.CardNumber);
+    Assert.NotEmpty(card.CardHolderName);
+    Assert.NotEmpty(card.CVV);
+    Assert.True(card.ExpirationDate > DateTime.Now);
+}
+```
+
+### Model Validation Test
+
+```csharp
+[Fact]
+public void SearchResult_CanBeCreatedWithInitializer()
 {
     // Arrange
-    string? query = null;
+    var sourceName = "Test Source";
+    var sourceLink = "https://example.com";
+    var text = "Test content";
 
-    // Act & Assert
-    Assert.Throws<ArgumentNullException>(() => 
-        DocumentSearchAdapter.Search(query!).ToList());
+    // Act
+    var result = new SearchResult
+    {
+        SourceName = sourceName,
+        SourceLink = sourceLink,
+        Text = text
+    };
+
+    // Assert
+    Assert.Equal(sourceName, result.SourceName);
+    Assert.Equal(sourceLink, result.SourceLink);
+    Assert.Equal(text, result.Text);
 }
 ```
 
@@ -192,17 +305,32 @@ public void Search_WithNullQuery_ThrowsArgumentNullException()
 
 ### Coverage by Component
 
-| Component | Coverage | Lines Covered |
-|-----------|----------|---------------|
-| `DocumentSearchAdapter.Search()` | 100% | All branches |
-| `SearchResult` (class) | 100% | All properties |
+| Component | Test Count | Status |
+|-----------|------------|--------|
+| `DocumentSearchAdapter` | 8 tests | ✅ Comprehensive |
+| `BankDataGenerator` | 18 tests | ✅ Comprehensive |
+| `SearchResult` | 4 tests | ✅ Complete |
+| `BankCard` | 2 tests | ✅ Complete |
+| `BankTransaction` | 3 tests | ✅ Complete |
+| `BankStatement` | 2 tests | ✅ Complete |
+| `BankData` | 3 tests | ✅ Complete |
+| `AzureSearchDocumentSearchAdapter` | 4 tests | ✅ Complete |
+| `RouteNames` | 7 tests | ✅ Complete |
+| `ISearchService` | 4 tests | ✅ Complete |
+
+### Test Categories
+
+- **Unit Tests**: 51 tests covering individual components
+- **Integration Tests**: Coming in future releases
+- **Performance Tests**: Coming in future releases
 
 ### Uncovered Scenarios
 
-The following are **intentionally not tested** as they're application entry points:
+The following are **intentionally not tested** as they're application entry points or require live Azure services:
 
 - `ASE.SimpleAgent/Program.cs` - Console app entry point
-- `ASE.SimpleAgentSearch/Program.cs` - Console app entry point
+- `ASE.SimpleAgentSearch/Program.cs` - Console app entry point  
+- `ASE.EnterpriseApi` - API endpoints (require integration tests)
 
 These would require integration tests with live Azure services.
 

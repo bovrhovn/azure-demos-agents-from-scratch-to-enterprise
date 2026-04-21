@@ -1,0 +1,8 @@
+﻿### GET HEALTH CHECK
+GET {{ url }}/health
+
+### GET BANK DATA
+GET {{ url }}/basic/get-all
+
+### SEARCH BANK DATA
+GET {{ url }}/basic/search?query=return

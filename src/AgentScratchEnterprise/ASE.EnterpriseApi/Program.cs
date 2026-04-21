@@ -1,6 +1,7 @@
 using System.Net;
 using ASE.EnterpriseApi.Routes;
-using ASE.Libraries;
+using ASE.Libraries.General;
+using ASE.Libraries.Search;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.HttpOverrides;
 
@@ -42,4 +43,7 @@ app.UseExceptionHandler(options =>
 });
 app.MapHealthChecks("/health");
 app.Run();
-public partial class Program { }
+namespace ASE.EnterpriseApi
+{
+    public partial class Program { }
+}

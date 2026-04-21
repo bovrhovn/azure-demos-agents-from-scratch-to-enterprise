@@ -1,4 +1,4 @@
-﻿namespace ASE.Libraries;
+﻿namespace ASE.Libraries.General;
 
 public class RouteNames
 {

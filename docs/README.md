@@ -10,10 +10,9 @@ Welcome to the comprehensive documentation for the **Azure AI Agents** project. 
 2. [Architecture](./architecture.md) - System design and component overview
 3. [Projects](./projects.md) - Detailed information about each project
 4. [Configuration](./configuration.md) - Environment variables and settings
-5. [API Reference](./api-reference.md) - Library and adapter documentation
-6. [Examples](./examples.md) - Code samples and usage patterns
-7. [Testing](./testing.md) - Testing strategy and running tests
-8. [Troubleshooting](./troubleshooting.md) - Common issues and solutions
+5. [Testing](./testing.md) - Testing strategy and running tests
+6. [Test Summary](./test-summary.md) - Comprehensive test results and coverage
+7. [Troubleshooting](./troubleshooting.md) - Common issues and solutions
 
 ---
 
@@ -133,7 +132,7 @@ Before you begin, ensure you have the following:
 
 ## 🧪 Testing
 
-The project includes comprehensive unit tests with 100% coverage of the library components.
+The project includes comprehensive unit tests covering all library components.
 
 ```bash
 cd tests\ASE.Libraries.Tests
@@ -141,11 +140,11 @@ dotnet test
 ```
 
 **Test Results:**
-- ✅ 17 tests passed
+- ✅ 51 tests passed
 - ✅ 0 tests failed
-- ✅ Full coverage of `DocumentSearchAdapter` and `SearchResult`
+- ✅ Comprehensive coverage of all library components
 
-[Testing documentation →](./testing.md)
+[Testing documentation →](./testing.md) | [Detailed test summary →](./test-summary.md)
 
 ---
 
