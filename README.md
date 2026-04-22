@@ -62,26 +62,27 @@ dotnet run
 
 ## 📂 Project Structure
 
+```mermaid
+graph TD
+    ROOT["🏠 azure-demos-agents-from-scratch-to-enterprise"]
+    ROOT --> SRC["📁 src/AgentScratchEnterprise/"]
+    ROOT --> WEBAPP["📁 src/chat-web-app/"]
+    ROOT --> TESTS["📁 tests/ASE.Libraries.Tests/"]
+    ROOT --> DOCS["📁 docs/"]
+
+    SRC --> SA["ASE.SimpleAgent\nBasic Q&A Agent"]
+    SRC --> SAS["ASE.SimpleAgentSearch\nRAG Agent"]
+    SRC --> LIBS["ASE.Libraries\nShared Components"]
+    SRC --> EAPI["ASE.EnterpriseApi\nASP.NET Minimal API"]
+
+    LIBS -.->|"project ref"| SAS
+    LIBS -.->|"project ref"| EAPI
+    LIBS -.->|"project ref"| TESTS
+
+    WEBAPP -->|"REST API"| EAPI
 ```
-azure-demos-agents-from-scratch-to-enterprise/
-├── 📁 src/
-│   └── AgentScratchEnterprise/
-│       ├── ASE.SimpleAgent/          # Basic AI agent
-│       ├── ASE.SimpleAgentSearch/    # Agent with RAG search
-│       └── ASE.Libraries/            # Shared components
-├── 📁 tests/
-│   └── ASE.Libraries.Tests/          # Unit tests (51 tests, comprehensive coverage)
-├── 📁 docs/                           # Comprehensive documentation
-│   ├── README.md                      # Documentation hub
-│   ├── getting-started.md             # Setup guide
-│   ├── architecture.md                # System design
-│   ├── projects.md                    # Project details
-│   ├── configuration.md               # Configuration options
-│   ├── testing.md                     # Testing guide
-│   └── troubleshooting.md             # Common issues
-├── README.md                          # This file
-└── LICENSE                            # MIT License
-```
+
+> 📊 Full diagrams (flows, class design, test coverage): [docs/diagrams.md](./docs/diagrams.md)
 
 ---
 
@@ -191,6 +192,7 @@ Comprehensive documentation is available in the [`docs/`](./docs/) folder:
 | [⚙️ Configuration](./docs/configuration.md) | Environment variables and settings |
 | [🧪 Testing](./docs/testing.md) | Test strategy and execution |
 | [🚨 Troubleshooting](./docs/troubleshooting.md) | Common issues and solutions |
+| [📊 Diagrams](./docs/diagrams.md) | Mermaid diagrams: architecture, flows, class design, test coverage |
 
 ---
 

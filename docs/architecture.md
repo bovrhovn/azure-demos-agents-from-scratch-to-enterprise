@@ -2,6 +2,8 @@
 
 This document provides a comprehensive overview of the Azure AI Agents solution architecture, component interactions, and design patterns.
 
+> 📊 **Visual diagrams** (Mermaid): [Architecture & Flow Diagrams](./diagrams.md)
+
 ---
 
 ## 📐 System Architecture
@@ -275,58 +277,46 @@ services.AddScoped<IAIAgent, CustomAgent>();
 
 ## 📊 Data Flow Diagrams
 
+> 📊 Full interactive diagrams: [diagrams.md](./diagrams.md)
+
 ### Simple Agent Flow
 
-```
-┌─────────┐       ┌─────────────┐       ┌──────────────┐       ┌──────────┐
-│  User   │──────►│  AIAgent    │──────►│ Azure AI     │──────►│ Azure    │
-│  Input  │       │  Instance   │       │ Projects API │       │ OpenAI   │
-└─────────┘       └─────────────┘       └──────────────┘       └──────────┘
-                                                                      │
-┌─────────┐       ┌─────────────┐       ┌──────────────┐            │
-│  User   │◄──────│  Format &   │◄──────│  Response    │◄───────────┘
-│ Display │       │  Present    │       │  Received    │
-└─────────┘       └─────────────┘       └──────────────┘
+```mermaid
+sequenceDiagram
+    actor User
+    participant Console as Spectre.Console
+    participant Agent as AIAgent
+    participant Azure as Azure AI Projects API
+    participant OpenAI as Azure OpenAI
+
+    User->>Console: Enter question
+    Console->>Agent: RunAsync(question)
+    Agent->>Azure: POST /agents/runs
+    Azure->>OpenAI: Forward prompt + instructions
+    OpenAI-->>Azure: GPT response
+    Azure-->>Agent: RunResult (string)
+    Agent-->>Console: answer
+    Console-->>User: [green]Answer:[/] ...
 ```
 
 ### Search-Enhanced Agent Flow
 
-```
-┌─────────┐       ┌──────────────┐       ┌──────────────────┐
-│  User   │──────►│  AIAgent     │──────►│ TextSearch       │
-│  Query  │       │  (with RAG)  │       │ Provider         │
-└─────────┘       └──────────────┘       └──────────────────┘
-                                                   │
-                                                   ▼
-                                          ┌──────────────────┐
-                                          │ DocumentSearch   │
-                                          │ Adapter          │
-                                          └──────────────────┘
-                                                   │
-                          ┌────────────────────────┴────────────────────────┐
-                          ▼                                                 ▼
-                  ┌──────────────────┐                           ┌──────────────────┐
-                  │ Search Results   │                           │ No Results       │
-                  │ (with sources)   │                           │ Found            │
-                  └──────────────────┘                           └──────────────────┘
-                          │                                                 │
-                          └────────────────────┬────────────────────────────┘
-                                               ▼
-                                      ┌──────────────────┐
-                                      │ Azure OpenAI     │
-                                      │ (with context)   │
-                                      └──────────────────┘
-                                               │
-                                               ▼
-                                      ┌──────────────────┐
-                                      │ AI Response      │
-                                      │ (cited sources)  │
-                                      └──────────────────┘
-                                               │
-                                               ▼
-                                      ┌──────────────────┐
-                                      │ Display to User  │
-                                      └──────────────────┘
+```mermaid
+sequenceDiagram
+    actor User
+    participant Agent as AIAgent (RAG)
+    participant TSP as TextSearchProvider
+    participant DSA as DocumentSearchAdapter
+    participant OpenAI as Azure OpenAI
+
+    User->>Agent: RunAsync(question)
+    Agent->>TSP: GetContextAsync(query)
+    TSP->>DSA: Search(query)
+    DSA-->>TSP: IEnumerable<SearchResult>
+    TSP-->>Agent: TextSearchResult[] with sources
+    Agent->>OpenAI: Chat completion (query + context)
+    OpenAI-->>Agent: Response with citations
+    Agent-->>User: Answer + cited sources
 ```
 
 ---

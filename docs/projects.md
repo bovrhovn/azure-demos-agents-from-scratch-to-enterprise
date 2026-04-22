@@ -431,30 +431,32 @@ dotnet test
 
 ## 🔗 Project Dependencies Graph
 
-```
-ASE.SimpleAgent
-    ├── Azure.AI.Projects (2.0.0)
-    ├── Azure.Identity (1.21.0)
-    ├── Microsoft.Agents.AI.Foundry (1.1.0)
-    └── Spectre.Console (0.55.0)
+> 📊 Full interactive diagrams: [diagrams.md](./diagrams.md)
 
-ASE.SimpleAgentSearch
-    ├── Azure.AI.OpenAI (latest)
-    ├── Azure.Identity (1.21.0)
-    ├── Microsoft.Agents.AI (latest)
-    ├── Microsoft.Extensions.AI (latest)
-    ├── Spectre.Console (0.55.0)
-    └── ASE.Libraries (project reference)
+```mermaid
+graph LR
+    SA["ASE.SimpleAgent"]
+    SAS["ASE.SimpleAgentSearch"]
+    LIBS["ASE.Libraries"]
+    LT["ASE.Libraries.Tests"]
 
-ASE.Libraries
-    └── (no external dependencies)
+    SA --> AIP["Azure.AI.Projects\n2.0.0"]
+    SA --> AID["Azure.Identity\n1.21.0"]
+    SA --> MAF["Microsoft.Agents.AI.Foundry\n1.1.0"]
+    SA --> SC["Spectre.Console\n0.55.0"]
 
-ASE.Libraries.Tests
-    ├── Microsoft.NET.Test.Sdk (17.13.0)
-    ├── xUnit (2.9.3)
-    ├── xunit.runner.visualstudio (3.0.0)
-    ├── coverlet.collector (6.0.3)
-    └── ASE.Libraries (project reference)
+    SAS --> AOAI["Azure.AI.OpenAI"]
+    SAS --> AID2["Azure.Identity\n1.21.0"]
+    SAS --> MAI["Microsoft.Agents.AI"]
+    SAS --> MEAI["Microsoft.Extensions.AI"]
+    SAS --> SC2["Spectre.Console\n0.55.0"]
+    SAS --> LIBS
+
+    LT --> LIBS
+    LT --> XUNIT["xUnit\n2.9.3"]
+    LT --> TESTSDK["Microsoft.NET.Test.Sdk\n17.13.0"]
+    LT --> BOGUS["Bogus\n35.6.5"]
+    LT --> COV["coverlet.collector\n6.0.3"]
 ```
 
 ---

@@ -2,6 +2,8 @@
 
 This document covers the testing strategy, test execution, and coverage details for the Azure AI Agents project.
 
+> 📊 **Visual diagrams** (Mermaid): [Test Architecture & Coverage Diagrams](./diagrams.md#-test-coverage--distribution)
+
 ---
 
 ## 📋 Testing Overview
@@ -317,6 +319,19 @@ public void SearchResult_CanBeCreatedWithInitializer()
 | `AzureSearchDocumentSearchAdapter` | 4 tests | ✅ Complete |
 | `RouteNames` | 7 tests | ✅ Complete |
 | `ISearchService` | 4 tests | ✅ Complete |
+
+### Test Distribution
+
+```mermaid
+pie title Test Distribution (51 total)
+    "BankDataGeneratorTests" : 18
+    "DocumentSearchAdapterTests" : 8
+    "RouteNamesTests" : 7
+    "BankModelsTests" : 6
+    "SearchResultTests" : 4
+    "AzureSearchDocumentSearchAdapterTests" : 4
+    "ISearchServiceTests" : 4
+```
 
 ### Test Categories
 

@@ -13,6 +13,7 @@ Welcome to the comprehensive documentation for the **Azure AI Agents** project. 
 5. [Testing](./testing.md) - Testing strategy and running tests
 6. [Test Summary](./test-summary.md) - Comprehensive test results and coverage
 7. [Troubleshooting](./troubleshooting.md) - Common issues and solutions
+8. [📊 Diagrams](./diagrams.md) - Mermaid diagrams: architecture, flows, class relationships, test coverage
 
 ---
 
