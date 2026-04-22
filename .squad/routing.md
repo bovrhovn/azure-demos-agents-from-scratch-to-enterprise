@@ -6,12 +6,13 @@ How to decide who handles what.
 
 | Work Type | Route To | Examples |
 |-----------|----------|----------|
-| {domain 1} | {Name} | {example tasks} |
-| {domain 2} | {Name} | {example tasks} |
-| {domain 3} | {Name} | {example tasks} |
-| Code review | {Name} | Review PRs, check quality, suggest improvements |
-| Testing | {Name} | Write tests, find edge cases, verify fixes |
-| Scope & priorities | {Name} | What to build next, trade-offs, decisions |
+| Vue.js / Frontend | Trinity | Components, routing, composables, Tailwind CSS, UX |
+| API integration | Trinity | Fetch API service, types, env vars |
+| Backend / .NET | Morpheus | ASP.NET Core routes, CORS, models, appsettings |
+| Architecture | Neo | System design, tech choices, decisions |
+| Code review | Neo | Review PRs, check quality, suggest improvements |
+| Testing | Tank | Playwright tests, validation coverage, edge cases |
+| Scope & priorities | Neo | What to build next, trade-offs, decisions |
 | Session logging | Scribe | Automatic — never needs routing |
 
 ## Issue Routing

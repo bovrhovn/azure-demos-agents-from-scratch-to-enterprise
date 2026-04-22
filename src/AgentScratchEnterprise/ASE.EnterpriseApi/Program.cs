@@ -15,6 +15,23 @@ builder.Services.AddTransient<ILogger>(p =>
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
 builder.Services.AddMemoryCache();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVueApp", policy =>
+    {
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "https://localhost:5173",
+                "http://localhost:4173",
+                "https://localhost:4173",
+                "http://localhost:3000",
+                "https://localhost:3000"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 builder.Services.AddHealthChecks();
 
 if (Environment.GetEnvironmentVariable("SEARCH_ENVIRONMENT")?.ToUpper() == "LOCAL")
@@ -24,6 +41,7 @@ else
 
 var app = builder.Build();
 app.UseForwardedHeaders();
+app.UseCors("AllowVueApp");
 app.MapGroup(RouteNames.BasicRoute)
     .MapBasicEnterpriseApi();
     
