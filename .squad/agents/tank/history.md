@@ -21,3 +21,10 @@
 - **Files created:**
   - `src/vue-app/playwright.config.ts` — Playwright config with Vite dev server auto-start
   - `src/vue-app/tests/search.spec.ts` — 12 tests using Page Object Model (`SearchPage` class)
+
+### Full test run — all suites (2025-07-17)
+
+- **.NET unit tests (ASE.Libraries.Tests):** 51/51 passed, 0 failed, 0 skipped. Duration: ~8.3s.
+- **Playwright E2E tests (chat-web-app):** 12/12 passed, 0 failed. Duration: ~35.8s.
+- **Note:** Playwright tests now live in `src/chat-web-app/` (not `src/vue-app/`).
+- **Overall status:** ✅ All 63 tests green.

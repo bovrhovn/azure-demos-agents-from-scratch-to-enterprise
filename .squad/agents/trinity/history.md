@@ -37,3 +37,15 @@ cd C:\Work\Projects\azure-demos-agents-from-scratch-to-enterprise\src\vue-app
 npm install
 npx vite build   # ✓ built in ~5s, 108 kB JS, 15 kB CSS
 ```
+
+### Frontend Dockerfile + run script — 2025-07-16
+
+**Files created:**
+- `src/chat-web-app/Dockerfile` — multi-stage build: node:20-alpine (build) → nginx:alpine (serve)
+- `src/chat-web-app/nginx.conf` — SPA routing via `try_files`, 1-year asset cache, `/health` endpoint
+- `scripts/run-frontend.ps1` — dev runner: navigates to `src/chat-web-app`, runs `npm install` if needed, then `npm run dev`
+
+**Key decisions:**
+- `VITE_API_BASE_URL` passed as `ARG` at Docker build time (defaulting to `http://localhost:5066`) and promoted to `ENV` so Vite bakes it into the JS bundle.
+- nginx `default.conf` replaces the stock config; SPA fallback ensures Vue Router client-side routes work correctly.
+- `scripts/` directory created fresh (did not previously exist).
