@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.Json;
 using ASE.Libraries.Data;
 using ASE.Libraries.Models;
 using Azure.AI.OpenAI;
@@ -100,15 +101,16 @@ public class DocumentSearchAdapter : ISearchService
             tools: [..tools]);
         //translation agent
         var translationAgent = new ChatClientAgent(client,
-            $"You are a translation assistant who only responds in {translationLanguage}. " +
-            "Translate only text property.");
+            $"You are a translation assistant who responds in {translationLanguage}." +
+            "Take tool results, translate text property and replace text property with translation." +
+            "Keep source name and source link the same and return that to calling function.");
 
         //build sequential workflow
         var workflow = AgentWorkflowBuilder.BuildSequential(searchClient, translationAgent);
         var messages = new List<ChatMessage> { new(ChatRole.User, query) };
         
         await using StreamingRun run = await InProcessExecution.RunStreamingAsync(workflow, messages);
-        await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
+        await run.TrySendMessageAsync(new TurnToken(emitEvents: false));
 
         List<ChatMessage> result = [];
         await foreach (WorkflowEvent evt in run.WatchStreamAsync())
@@ -123,9 +125,51 @@ public class DocumentSearchAdapter : ISearchService
         var list  = new List<SearchResult>();
         foreach (var message in result)
         {
-            Debug.WriteLine($"[blue]{message.Role}[/]: [red]{message.Text}[/]");
+            if (message.Role == ChatRole.Assistant)
+            {
+                Debug.WriteLine($"[blue]{message.Role}[/]: [red]{message.Text}[/]");
+                TryAddSourceEntry(message.Text, list);
+            }
         }
 
         return list;
     }
+
+    private static bool TryAddSourceEntry(
+        string input,
+        List<SearchResult> list)
+    {
+        try
+        {
+            var entry = JsonSerializer.Deserialize<List<SearchResult>>(
+                input,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (IsValid(entry))
+            {
+                list.AddRange(entry);
+                return true;
+            }
+        }
+        catch (JsonException)
+        {
+            // Invalid JSON → skip
+        }
+
+        return false;
+    }
+
+    private static bool IsValid(List<SearchResult> entry)
+    {
+        if (entry == null || entry.Count == 0)
+        {
+            return false;
+        }
+        return true;
+    }
+
 }
+
