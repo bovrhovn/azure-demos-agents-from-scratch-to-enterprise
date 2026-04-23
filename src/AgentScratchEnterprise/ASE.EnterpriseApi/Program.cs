@@ -42,8 +42,11 @@ else
 var app = builder.Build();
 app.UseForwardedHeaders();
 app.UseCors("AllowVueApp");
+//api routes and implementation
 app.MapGroup(RouteNames.BasicRoute)
     .MapBasicEnterpriseApi();
+app.MapGroup(RouteNames.AdvancedRoute)
+    .MapAdvancedEnterpriseApi();
     
 app.UseExceptionHandler(options =>
 {

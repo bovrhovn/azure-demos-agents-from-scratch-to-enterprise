@@ -6,3 +6,6 @@ GET {{ url }}/basic/get-all
 
 ### SEARCH BANK DATA
 GET {{ url }}/basic/search?query=return
+    
+### SEARCH BANK DATA WITH AGENTS
+GET {{ url }}/advanced/search?query=return

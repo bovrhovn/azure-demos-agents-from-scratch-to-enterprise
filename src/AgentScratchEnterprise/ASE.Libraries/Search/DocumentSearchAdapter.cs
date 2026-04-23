@@ -54,4 +54,9 @@ public class DocumentSearchAdapter : ISearchService
 
         return list;
     }
+
+    public Task<List<SearchResult>> AdvancedSearch(string query, int records = 10)
+    {
+        throw new NotImplementedException();
+    }
 }

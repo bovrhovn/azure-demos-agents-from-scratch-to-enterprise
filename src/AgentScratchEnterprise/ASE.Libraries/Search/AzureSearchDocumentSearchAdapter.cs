@@ -8,4 +8,9 @@ public class AzureSearchDocumentSearchAdapter : ISearchService
     {
         throw new NotImplementedException();
     }
+
+    public Task<List<SearchResult>> AdvancedSearch(string query, int records = 10)
+    {
+        throw new NotImplementedException();
+    }
 }
