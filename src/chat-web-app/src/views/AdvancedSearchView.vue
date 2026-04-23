@@ -13,7 +13,7 @@
           Fine-grained search
         </h2>
         <p class="text-slate-400 text-lg max-w-xl mx-auto">
-          Filter by source, date range, and result count.
+          Search enterprise data with highlighted matches.
         </p>
       </div>
 
@@ -32,7 +32,7 @@
               </div>
               <input
                 id="adv-query"
-                v-model="params.query"
+                v-model="query"
                 type="text"
                 placeholder="Search enterprise data..."
                 class="input-field pl-11"
@@ -45,74 +45,13 @@
               />
             </div>
             <Transition name="error">
-              <p v-if="validationError" class="mt-1.5 text-sm text-red-400 flex items-center gap-1.5" role="alert">
+              <p v-if="validationError" class="mt-1.5 text-sm text-red-400 flex items-center gap-1.5" role="alert" data-testid="advanced-validation-error">
                 <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-5a.75.75 0 01.75.75v4.5a.75.75 0 01-1.5 0v-4.5A.75.75 0 0110 5zm0 10a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
                 </svg>
                 {{ validationError }}
               </p>
             </Transition>
-          </div>
-
-          <!-- Filters row -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <!-- Source filter -->
-            <div>
-              <label for="adv-source" class="block text-xs text-slate-400 mb-1.5">Source name</label>
-              <input
-                id="adv-source"
-                v-model="params.source"
-                type="text"
-                placeholder="e.g. confluence"
-                class="input-field"
-                :disabled="isLoading"
-                autocomplete="off"
-              />
-            </div>
-
-            <!-- Max results -->
-            <div>
-              <label for="adv-max" class="block text-xs text-slate-400 mb-1.5">Max results</label>
-              <select
-                id="adv-max"
-                v-model.number="params.maxResults"
-                class="input-field"
-                :disabled="isLoading"
-              >
-                <option :value="undefined">No limit</option>
-                <option :value="5">5</option>
-                <option :value="10">10</option>
-                <option :value="25">25</option>
-                <option :value="50">50</option>
-              </select>
-            </div>
-
-            <!-- Placeholder column for alignment -->
-            <div class="hidden sm:block" />
-          </div>
-
-          <!-- Date range row -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label for="adv-from" class="block text-xs text-slate-400 mb-1.5">From date</label>
-              <input
-                id="adv-from"
-                v-model="params.fromDate"
-                type="date"
-                class="input-field date-input"
-                :disabled="isLoading"
-              />
-            </div>
-            <div>
-              <label for="adv-to" class="block text-xs text-slate-400 mb-1.5">To date</label>
-              <input
-                id="adv-to"
-                v-model="params.toDate"
-                type="date"
-                class="input-field date-input"
-                :disabled="isLoading"
-              />
-            </div>
           </div>
 
           <!-- Actions -->
@@ -130,13 +69,14 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              {{ isLoading ? 'Searching…' : 'Advanced Search' }}
+              {{ isLoading ? 'Searching…' : 'Search' }}
             </button>
 
             <button
-              v-if="hasSearched || hasFilters"
+              v-if="hasSearched"
               type="button"
               class="text-sm text-slate-400 hover:text-slate-200 transition-colors"
+              data-testid="advanced-clear-button"
               @click="handleReset"
             >
               Clear
@@ -152,6 +92,7 @@
           :is-loading="isLoading"
           :error="error"
           :has-searched="hasSearched"
+          :highlight="lastQuery"
         />
       </div>
     </main>
@@ -165,39 +106,30 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { ref } from 'vue'
 import AppHeader from '@/components/AppHeader.vue'
 import SearchResults from '@/components/SearchResults.vue'
 import { useAdvancedSearch } from '@/composables/useAdvancedSearch'
 import { useSettings } from '@/composables/useSettings'
-import type { AdvancedSearchParams } from '@/types/search'
 
 const { results, isLoading, error, hasSearched, validationError, search, clearValidation, reset } =
   useAdvancedSearch()
 const { baseUrl } = useSettings()
 
-const params = reactive<AdvancedSearchParams>({
-  query: '',
-  source: '',
-  maxResults: undefined,
-  fromDate: '',
-  toDate: '',
-})
-
-const hasFilters = computed(
-  () => !!params.source || !!params.maxResults || !!params.fromDate || !!params.toDate,
-)
+const query = ref('')
+// Holds the query that produced the current results — used for highlighting
+const lastQuery = ref('')
 
 async function handleSearch(): Promise<void> {
-  await search({ ...params })
+  await search({ query: query.value })
+  if (hasSearched.value && !error.value) {
+    lastQuery.value = query.value.trim()
+  }
 }
 
 function handleReset(): void {
-  params.query = ''
-  params.source = ''
-  params.maxResults = undefined
-  params.fromDate = ''
-  params.toDate = ''
+  query.value = ''
+  lastQuery.value = ''
   reset()
 }
 </script>
@@ -211,11 +143,5 @@ function handleReset(): void {
 .error-leave-to {
   opacity: 0;
   transform: translateY(-4px);
-}
-
-/* Style date input calendar icon to match dark theme */
-.date-input::-webkit-calendar-picker-indicator {
-  filter: invert(0.5);
-  cursor: pointer;
 }
 </style>

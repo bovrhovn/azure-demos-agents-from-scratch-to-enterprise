@@ -16,10 +16,13 @@
           </span>
         </div>
 
-        <!-- Text content -->
-        <p class="text-sm text-slate-300 leading-relaxed line-clamp-3" data-testid="result-text">
-          {{ result.text }}
-        </p>
+        <!-- Text content (highlighted when a query is provided) -->
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <p
+          class="text-sm text-slate-300 leading-relaxed line-clamp-3"
+          data-testid="result-text"
+          v-html="highlightedText"
+        />
       </div>
 
       <!-- Link -->
@@ -41,9 +44,35 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { SearchResult } from '@/types/search'
 
-defineProps<{
+const props = defineProps<{
   result: SearchResult
+  highlight?: string
 }>()
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;')
+}
+
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+const highlightedText = computed((): string => {
+  const safe = escapeHtml(props.result.text)
+  const term = props.highlight?.trim() ?? ''
+  if (!term) return safe
+  const pattern = new RegExp(`(${escapeRegExp(escapeHtml(term))})`, 'gi')
+  return safe.replace(
+    pattern,
+    '<mark class="bg-yellow-400/30 text-yellow-200 rounded px-0.5 not-italic" data-testid="highlight">$1</mark>',
+  )
+})
 </script>

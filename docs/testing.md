@@ -8,18 +8,17 @@ This document covers the testing strategy, test execution, and coverage details 
 
 ## 📋 Testing Overview
 
-The project includes comprehensive unit tests with extensive coverage of the `ASE.Libraries` components. Tests are written using **xUnit**, a modern testing framework for .NET.
+The project includes comprehensive unit tests (.NET/xUnit) and end-to-end frontend tests (Playwright).
 
 ### Test Statistics
 
 | Metric | Value |
 |--------|-------|
-| **Total Tests** | 51 |
-| **Passed Tests** | ✅ 51 |
+| **Total .NET Tests** | 65 (51 library + 14 API options) |
+| **Total Frontend E2E Tests** | 22 (Playwright) |
+| **Passed Tests** | ✅ All |
 | **Failed Tests** | ❌ 0 |
-| **Code Coverage** | Comprehensive (All library components) |
-| **Test Framework** | xUnit 2.9.3 |
-| **Test Execution Time** | ~8 seconds |
+| **Test Frameworks** | xUnit 2.9.3 (backend), Playwright (frontend) |
 
 ---
 
@@ -27,17 +26,230 @@ The project includes comprehensive unit tests with extensive coverage of the `AS
 
 ```
 tests/
-└── ASE.Libraries.Tests/
-    ├── ASE.Libraries.Tests.csproj
+├── ASE.Libraries.Tests/            ← Library unit tests (51 tests)
+│   ├── ASE.Libraries.Tests.csproj
+│   ├── GlobalUsings.cs
+│   ├── DocumentSearchAdapterTests.cs           # 8 tests
+│   ├── BankDataGeneratorTests.cs               # 18 tests
+│   ├── SearchResultTests.cs                    # 4 tests
+│   ├── BankModelsTests.cs                      # 6 tests
+│   ├── AzureSearchDocumentSearchAdapterTests.cs # 4 tests
+│   ├── RouteNamesTests.cs                      # 7 tests
+│   └── ISearchServiceTests.cs                  # 4 tests
+└── ASE.EnterpriseApi.Tests/        ← API options tests (14 tests)
+    ├── ASE.EnterpriseApi.Tests.csproj
     ├── GlobalUsings.cs
-    ├── DocumentSearchAdapterTests.cs           # 8 tests
-    ├── BankDataGeneratorTests.cs               # 18 tests
-    ├── SearchResultTests.cs                    # 4 tests
-    ├── BankModelsTests.cs                      # 6 tests
-    ├── AzureSearchDocumentSearchAdapterTests.cs # 4 tests
-    ├── RouteNamesTests.cs                      # 7 tests
-    └── ISearchServiceTests.cs                  # 4 tests
+    ├── CorsOptionsTests.cs                     # 6 tests
+    └── SearchOptionsTests.cs                   # 8 tests
+
+src/chat-web-app/tests/
+└── search.spec.ts                  ← Playwright E2E tests (22 tests)
 ```
+
+---
+
+## 🚀 Running Tests
+
+### Backend (.NET)
+
+#### Run all tests
+```bash
+dotnet test
+```
+
+#### Run specific test project
+```bash
+cd tests\ASE.Libraries.Tests
+dotnet test
+
+cd tests\ASE.EnterpriseApi.Tests
+dotnet test
+```
+
+#### Run with detailed output
+```bash
+dotnet test --logger "console;verbosity=detailed"
+```
+
+### Frontend (Playwright)
+
+```bash
+cd src\chat-web-app
+npx playwright test
+```
+
+#### Run with UI report
+```bash
+npx playwright test --reporter=html
+```
+
+---
+
+## 📝 Backend Test Cases
+
+### `CorsOptionsTests` (6 tests) — `ASE.EnterpriseApi.Tests`
+
+Tests for the `CorsOptions` configuration class.
+
+| Test Name | Purpose |
+|-----------|---------|
+| `CorsOptions_WithValidOrigins_PassesValidation` | Single valid origin passes |
+| `CorsOptions_WithMultipleOrigins_PassesValidation` | Multiple origins pass |
+| `CorsOptions_WithNullOrigins_FailsValidation` | Null origins fail validation |
+| `CorsOptions_WithEmptyOrigins_FailsValidation` | Empty array fails validation |
+| `CorsOptions_SectionName_IsCorrect` | `SectionName` constant equals `"Cors"` |
+| `CorsOptions_AllowedOrigins_DefaultsToEmpty` | Default constructor has empty origins |
+
+---
+
+### `SearchOptionsTests` (8 tests) — `ASE.EnterpriseApi.Tests`
+
+Tests for the `SearchOptions` configuration class.
+
+| Test Name | Purpose |
+|-----------|---------|
+| `SearchOptions_WithValidEnvironment_PassesValidation` | Non-empty string passes |
+| `SearchOptions_WithNullEnvironment_FailsValidation` | Null environment fails |
+| `SearchOptions_WithEmptyEnvironment_FailsValidation` | Empty string fails |
+| `SearchOptions_WithWhitespaceEnvironment_FailsValidation` | Whitespace fails |
+| `SearchOptions_SectionName_IsCorrect` | `SectionName` equals `"Search"` |
+| `SearchOptions_Environment_DefaultsToNull` | Default constructor returns null |
+| `SearchOptions_WithLocalEnvironment_PassesValidation` | `"LOCAL"` is valid |
+| `SearchOptions_WithProductionEnvironment_PassesValidation` | `"PRODUCTION"` is valid |
+
+---
+
+### Library Tests (51 tests) — `ASE.Libraries.Tests`
+
+See the existing sections below for full breakdowns of each test class.
+
+### `DocumentSearchAdapterTests` (8 tests)
+
+| Test Name | Purpose |
+|-----------|---------|
+| `Search_WithReturnQuery_ReturnsReturnPolicyResult` | Verifies "return" keyword triggers return policy |
+| `Search_WithRefundQuery_ReturnsRefundPolicyResult` | Verifies "refund" keyword triggers refund policy |
+| `Search_WithReturnQueryCaseInsensitive_ReturnsResult` | Tests case-insensitive search |
+| `Search_WithAmountQuery_ReturnsBankTransactions` | Verifies bank transaction search |
+| `Search_WithAmountQueryAndCustomRecordCount_RespectsRecordLimit` | Tests record count limiting |
+| `Search_WithUnmatchedQuery_ReturnsEmptyResult` | Handles non-matching queries |
+| `Search_ImplementsISearchService` | Verifies interface implementation |
+| `Search_WithEmptyQuery_ReturnsEmptyResult` | Handles empty query gracefully |
+
+---
+
+### `BankDataGeneratorTests` (18 tests)
+
+| Test Name | Purpose |
+|-----------|---------|
+| `GenerateCard_ReturnsValidBankCard` | Validates card generation |
+| `GenerateCard_CardTypeIsValid` | Ensures valid card types |
+| `GenerateCards_WithCount_ReturnsCorrectNumberOfCards` | Tests multiple card generation |
+| `GenerateCards_DefaultCount_ReturnsTwoCards` | Tests default parameter behavior |
+| `GenerateTransaction_WithCard_ReturnsValidTransaction` | Validates transaction generation |
+| `GenerateTransactions_WithCount_ReturnsCorrectNumber` | Tests multiple transaction generation |
+| `GenerateTransactions_AllTransactionsHaveSameCard` | Ensures transaction-card association |
+| `GenerateStatement_CalculatesCorrectBalance` | Validates balance calculation |
+| `GenerateBankData_ReturnsValidBankData` | Tests complete bank data generation |
+| `GenerateBankDataWithStatement_ReturnsBankDataAndStatement` | Tests combined data generation |
+| `GenerateBankDataList_ReturnsCorrectCount` | Tests list generation with custom count |
+| `GenerateBankDataList_DefaultCount_ReturnsTenItems` | Tests default list generation |
+| `GenerateBankDataWithStatementList_ReturnsCorrectCount` | Tests statement list with custom count |
+| `GenerateBankDataWithStatementList_DefaultCount_ReturnsTenItems` | Tests default statement list |
+
+---
+
+## 📝 Frontend E2E Test Cases (Playwright)
+
+### `Enterprise Search App` — Basic Search (12 tests)
+
+| Test Name | Purpose |
+|-----------|---------|
+| `loads the search page with input and button visible` | Page renders correctly |
+| `shows error when submitting empty query` | Empty query validation |
+| `shows error when query is only whitespace` | Whitespace validation |
+| `shows error when query is a single character` | Minimum length validation |
+| `clears validation error when user starts typing` | Error clears on input |
+| `displays results after a successful search` | API results render |
+| `shows correct source name and text in result cards` | Card content correct |
+| `shows result link when sourceLink is provided` | Link attribute set |
+| `shows empty state when search returns no results` | Empty state shown |
+| `shows error state when API returns an error` | Error state shown |
+| `search button is disabled while loading` | Loading state works |
+| `pressing Enter in search input triggers search` | Enter key submits |
+
+### `Advanced Search` — Query + Highlighting (10 tests)
+
+| Test Name | Purpose |
+|-----------|---------|
+| `loads the advanced search page with only query input and search button` | Simplified UI — no filter fields |
+| `calls /advanced/search endpoint with query parameter` | Correct API endpoint used |
+| `shows error when submitting empty query` | Validation |
+| `shows error when query is a single character` | Min length validation |
+| `displays results after a successful advanced search` | Results render |
+| `shows empty state when advanced search returns no results` | Empty state |
+| `shows error state when API returns an error` | Error state |
+| `highlights matching query text in result cards` | `<mark>` tags present |
+| `highlight marks contain the searched term (case-insensitive)` | Match is correct term |
+| `clears highlights after reset` | Clear button resets state |
+
+---
+
+## 📊 Test Coverage Summary
+
+### Backend Components
+
+| Component | Test Count | Status |
+|-----------|------------|--------|
+| `CorsOptions` | 6 tests | ✅ Complete |
+| `SearchOptions` | 8 tests | ✅ Complete |
+| `DocumentSearchAdapter` | 8 tests | ✅ Comprehensive |
+| `BankDataGenerator` | 18 tests | ✅ Comprehensive |
+| `SearchResult` | 4 tests | ✅ Complete |
+| `BankCard/Transaction/Statement/Data` | 10 tests | ✅ Complete |
+| `AzureSearchDocumentSearchAdapter` | 4 tests | ✅ Complete |
+| `RouteNames` | 7 tests | ✅ Complete |
+| `ISearchService` | 4 tests | ✅ Complete |
+
+### Frontend Components (Playwright)
+
+| Feature | Test Count | Status |
+|---------|------------|--------|
+| Basic Search validation | 4 tests | ✅ Complete |
+| Basic Search results | 8 tests | ✅ Complete |
+| Advanced Search UI | 2 tests | ✅ Complete |
+| Advanced Search results | 3 tests | ✅ Complete |
+| Advanced Search validation | 2 tests | ✅ Complete |
+| Text highlighting | 3 tests | ✅ Complete |
+
+---
+
+## 🔍 Test Best Practices Applied
+
+### 1. **Arrange-Act-Assert Pattern**
+All tests follow the AAA pattern for clarity.
+
+### 2. **Descriptive Test Names**
+```
+[Method]_With[Scenario]_[ExpectedBehavior]
+```
+
+### 3. **Page Object Pattern (Playwright)**
+Frontend tests use Page Objects (`SearchPage`, `AdvancedSearchPage`) to reduce duplication and centralise selectors.
+
+### 4. **API Mocking (Playwright)**
+All Playwright tests use `page.route()` to mock API responses — no live backend required.
+
+### 5. **`data-testid` Selectors**
+Frontend components expose `data-testid` attributes for stable test targeting:
+- `search-input`, `search-button`, `validation-error`
+- `advanced-query-input`, `advanced-search-button`, `advanced-validation-error`, `advanced-clear-button`
+- `result-card`, `result-source`, `result-text`, `result-link`, `highlight`
+- `results-list`, `empty-state`, `error-state`, `loading-state`
+
+---
+
+*Comprehensive testing ensures reliable AI agents! 🧪✅*
 
 ### Project Configuration
 

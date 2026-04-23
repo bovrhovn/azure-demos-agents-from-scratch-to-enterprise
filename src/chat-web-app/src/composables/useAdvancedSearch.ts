@@ -21,10 +21,6 @@ export function useAdvancedSearch() {
       validationError.value = 'Search query must be at least 2 characters.'
       return false
     }
-    if (params.fromDate && params.toDate && params.fromDate > params.toDate) {
-      validationError.value = '"From" date must be before "To" date.'
-      return false
-    }
     validationError.value = null
     return true
   }

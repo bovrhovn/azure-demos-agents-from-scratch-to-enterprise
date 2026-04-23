@@ -57,6 +57,7 @@
         v-for="(result, index) in results"
         :key="index"
         :result="result"
+        :highlight="highlight"
       />
     </div>
   </section>
@@ -71,5 +72,6 @@ defineProps<{
   isLoading: boolean
   error: string | null
   hasSearched: boolean
+  highlight?: string
 }>()
 </script>
