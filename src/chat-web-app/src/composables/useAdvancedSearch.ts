@@ -1,9 +1,9 @@
 import { ref } from 'vue'
-import type { SearchResult } from '@/types/search'
-import { searchAsync } from '@/services/searchService'
+import type { SearchResult, AdvancedSearchParams } from '@/types/search'
+import { advancedSearchAsync } from '@/services/searchService'
 import { useSettings } from '@/composables/useSettings'
 
-export function useSearch() {
+export function useAdvancedSearch() {
   const { baseUrl } = useSettings()
   const results = ref<SearchResult[]>([])
   const isLoading = ref(false)
@@ -11,8 +11,8 @@ export function useSearch() {
   const hasSearched = ref(false)
   const validationError = ref<string | null>(null)
 
-  function validate(query: string): boolean {
-    const trimmed = query.trim()
+  function validate(params: AdvancedSearchParams): boolean {
+    const trimmed = params.query.trim()
     if (!trimmed) {
       validationError.value = 'Please enter a search query.'
       return false
@@ -21,19 +21,23 @@ export function useSearch() {
       validationError.value = 'Search query must be at least 2 characters.'
       return false
     }
+    if (params.fromDate && params.toDate && params.fromDate > params.toDate) {
+      validationError.value = '"From" date must be before "To" date.'
+      return false
+    }
     validationError.value = null
     return true
   }
 
-  async function search(query: string): Promise<void> {
-    if (!validate(query)) return
+  async function search(params: AdvancedSearchParams): Promise<void> {
+    if (!validate(params)) return
 
     isLoading.value = true
     error.value = null
     results.value = []
 
     try {
-      results.value = await searchAsync(query, baseUrl.value)
+      results.value = await advancedSearchAsync(params, baseUrl.value)
       hasSearched.value = true
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred.'

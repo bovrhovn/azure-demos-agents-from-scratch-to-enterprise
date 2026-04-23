@@ -15,24 +15,26 @@
 .PARAMETER ResourceGroup
     Azure Resource Group containing the ACR (optional - ACR name is globally unique)
     
-.PARAMETER BackendTag
-    Tag for the backend image (default: 'latest')
+.PARAMETER BackendImage
+    Full image name for the backend, optionally including a tag (e.g. 'ase-enterprise-api:v1.0.0').
+    If no tag is specified the tag defaults to 'latest'.
     
-.PARAMETER FrontendTag
-    Tag for the frontend image (default: 'latest')
-    
-.PARAMETER ViteApiBaseUrl
-    The API base URL to bake into the frontend image (default: 'http://localhost:5066')
-    This is passed as a build argument to the frontend Dockerfile.
+.PARAMETER FrontendImage
+    Full image name for the frontend, optionally including a tag (e.g. 'vue-search-app:v1.0.0').
+    If no tag is specified the tag defaults to 'latest'.
     
 .PARAMETER NoPush
     Build only, do not push to registry.
+    
+.NOTES
+    VITE_API_BASE_URL is no longer a build argument. Set it as a runtime environment variable
+    when running the container (e.g. -e VITE_API_BASE_URL=https://api.myapp.com).
     
 .EXAMPLE
     .\build-acr.ps1 -AcrName "myregistry"
     
 .EXAMPLE
-    .\build-acr.ps1 -AcrName "myregistry" -BackendTag "v1.0.0" -FrontendTag "v1.0.0" -ViteApiBaseUrl "https://api.myapp.com"
+    .\build-acr.ps1 -AcrName "myregistry" -BackendImage "ase-enterprise-api:v1.0.0" -FrontendImage "vue-search-app:v1.0.0"
 #>
 
 param(
@@ -43,17 +45,18 @@ param(
     [string]$ResourceGroup = "",
     
     [Parameter(Mandatory = $false)]
-    [string]$BackendTag = "latest",
+    [string]$BackendImage = "ase-enterprise-api",
     
     [Parameter(Mandatory = $false)]
-    [string]$FrontendTag = "latest",
-    
-    [Parameter(Mandatory = $false)]
-    [string]$ViteApiBaseUrl = "http://localhost:5066",
+    [string]$FrontendImage = "vue-search-app",
     
     [Parameter(Mandatory = $false)]
     [switch]$NoPush
 )
+
+# Append ':latest' when the caller omitted a tag
+if ($BackendImage -notlike "*:*") { $BackendImage = "${BackendImage}:latest" }
+if ($FrontendImage -notlike "*:*") { $FrontendImage = "${FrontendImage}:latest" }
 
 $ErrorActionPreference = "Stop"
 
@@ -66,35 +69,30 @@ if (-not (Get-Command "az" -ErrorAction SilentlyContinue)) {
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $scriptDir
 
-# Image names
-$backendImage = "ase-enterprise-api:$BackendTag"
-$frontendImage = "vue-search-app:$FrontendTag"
-
-# ACR registry argument
-$registryArg = if ($ResourceGroup) { "--resource-group $ResourceGroup" } else { "" }
-
 Write-Host "🏗️  Azure Container Registry Build" -ForegroundColor Cyan
 Write-Host "   Registry:  $AcrName.azurecr.io" -ForegroundColor Gray
-Write-Host "   Backend:   $backendImage" -ForegroundColor Gray
-Write-Host "   Frontend:  $frontendImage" -ForegroundColor Gray
+Write-Host "   Backend:   $BackendImage" -ForegroundColor Gray
+Write-Host "   Frontend:  $FrontendImage" -ForegroundColor Gray
+Write-Host "   Note:      VITE_API_BASE_URL is set at container runtime, not baked in." -ForegroundColor DarkGray
 Write-Host ""
 
 # --- Build Backend ---
 Write-Host "🔧 Building backend image..." -ForegroundColor Yellow
-$backendContext = Join-Path $repoRoot "src\AgentScratchEnterprise"
-$backendDockerfile = "ASE.EnterpriseApi\Dockerfile"
+$backendContext    = Join-Path $repoRoot "src\AgentScratchEnterprise"
+$backendDockerfile = Join-Path $backendContext "ASE.EnterpriseApi\Dockerfile"
 
 $backendArgs = @(
     "acr", "build",
     "--registry", $AcrName,
-    "--image", $backendImage,
+    "--image", $BackendImage,
     "--file", $backendDockerfile
 )
 if ($ResourceGroup) { $backendArgs += @("--resource-group", $ResourceGroup) }
 if ($NoPush) { $backendArgs += "--no-push" }
 $backendArgs += $backendContext
 
-Write-Host "   Context: $backendContext" -ForegroundColor Gray
+Write-Host "   Context:    $backendContext" -ForegroundColor Gray
+Write-Host "   Dockerfile: $backendDockerfile" -ForegroundColor Gray
 Write-Host "   Command: az $($backendArgs -join ' ')" -ForegroundColor DarkGray
 az @backendArgs
 
@@ -107,20 +105,21 @@ Write-Host ""
 
 # --- Build Frontend ---
 Write-Host "⚛️  Building frontend image..." -ForegroundColor Yellow
-$frontendContext = Join-Path $repoRoot "src\chat-web-app"
+$frontendContext    = Join-Path $repoRoot "src\chat-web-app"
+$frontendDockerfile = Join-Path $frontendContext "Dockerfile"
 
 $frontendArgs = @(
     "acr", "build",
     "--registry", $AcrName,
-    "--image", $frontendImage,
-    "--build-arg", "VITE_API_BASE_URL=$ViteApiBaseUrl"
+    "--image", $FrontendImage,
+    "--file", $frontendDockerfile
 )
 if ($ResourceGroup) { $frontendArgs += @("--resource-group", $ResourceGroup) }
 if ($NoPush) { $frontendArgs += "--no-push" }
 $frontendArgs += $frontendContext
 
-Write-Host "   Context: $frontendContext" -ForegroundColor Gray
-Write-Host "   VITE_API_BASE_URL: $ViteApiBaseUrl" -ForegroundColor Gray
+Write-Host "   Context:    $frontendContext" -ForegroundColor Gray
+Write-Host "   Dockerfile: $frontendDockerfile" -ForegroundColor Gray
 Write-Host "   Command: az $($frontendArgs -join ' ')" -ForegroundColor DarkGray
 az @frontendArgs
 
@@ -135,6 +134,6 @@ Write-Host "🎉 All images built successfully!" -ForegroundColor Cyan
 if (-not $NoPush) {
     Write-Host ""
     Write-Host "Images available at:" -ForegroundColor Gray
-    Write-Host "   $AcrName.azurecr.io/$backendImage" -ForegroundColor White
-    Write-Host "   $AcrName.azurecr.io/$frontendImage" -ForegroundColor White
+    Write-Host "   $AcrName.azurecr.io/$BackendImage" -ForegroundColor White
+    Write-Host "   $AcrName.azurecr.io/$FrontendImage" -ForegroundColor White
 }

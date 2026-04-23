@@ -11,3 +11,11 @@ export interface SearchState {
   hasSearched: boolean
   query: string
 }
+
+export interface AdvancedSearchParams {
+  query: string
+  source?: string
+  maxResults?: number
+  fromDate?: string
+  toDate?: string
+}

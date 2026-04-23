@@ -8,7 +8,19 @@ const router = createRouter({
       path: '/',
       name: 'search',
       component: SearchView,
-      meta: { title: 'Enterprise Search' },
+      meta: { title: 'Basic Search' },
+    },
+    {
+      path: '/advanced',
+      name: 'advanced-search',
+      component: () => import('@/views/AdvancedSearchView.vue'),
+      meta: { title: 'Advanced Search' },
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('@/views/SettingsView.vue'),
+      meta: { title: 'Settings' },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -19,7 +31,7 @@ const router = createRouter({
 
 router.afterEach((to) => {
   const title = (to.meta.title as string) ?? 'Enterprise Search'
-  document.title = title
+  document.title = `${title} · ASE`
 })
 
 export default router

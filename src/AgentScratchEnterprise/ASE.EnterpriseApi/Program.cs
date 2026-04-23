@@ -1,4 +1,5 @@
 using System.Net;
+using ASE.EnterpriseApi.Options;
 using ASE.EnterpriseApi.Routes;
 using ASE.Libraries.General;
 using ASE.Libraries.Search;
@@ -15,18 +16,25 @@ builder.Services.AddTransient<ILogger>(p =>
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
 builder.Services.AddMemoryCache();
+
+builder.Services.AddOptions<CorsOptions>()
+    .BindConfiguration(CorsOptions.SectionName)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddOptions<SearchOptions>()
+    .BindConfiguration(SearchOptions.SectionName)
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+var corsConfig = builder.Configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>()
+    ?? throw new InvalidOperationException("Cors configuration section is missing.");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowVueApp", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "https://localhost:5173",
-                "http://localhost:4173",
-                "https://localhost:4173",
-                "http://localhost:3000",
-                "https://localhost:3000"
-            )
+        policy.WithOrigins(corsConfig.AllowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -34,7 +42,10 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddHealthChecks();
 
-if (Environment.GetEnvironmentVariable("SEARCH_ENVIRONMENT")?.ToUpper() == "LOCAL")
+var searchConfig = builder.Configuration.GetSection(SearchOptions.SectionName).Get<SearchOptions>()
+    ?? throw new InvalidOperationException("Search configuration section is missing.");
+
+if (searchConfig.Environment.Equals("LOCAL", StringComparison.OrdinalIgnoreCase))
     builder.Services.AddScoped<ISearchService, DocumentSearchAdapter>();
 else
     builder.Services.AddScoped<ISearchService, AzureSearchDocumentSearchAdapter>();

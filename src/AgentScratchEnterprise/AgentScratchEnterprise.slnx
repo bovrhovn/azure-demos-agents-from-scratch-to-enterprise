@@ -9,4 +9,5 @@
   </Folder>
   <Folder Name="/Search/" />
   <Project Path="../../tests/ASE.Libraries.Tests/ASE.Libraries.Tests.csproj" />
+  <Project Path="../../tests/ASE.EnterpriseApi.Tests/ASE.EnterpriseApi.Tests.csproj" />
 </Solution>

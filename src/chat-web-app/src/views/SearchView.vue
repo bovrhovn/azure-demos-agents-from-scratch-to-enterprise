@@ -67,7 +67,7 @@
     <!-- Footer -->
     <footer class="border-t border-white/5 py-4 px-6">
       <p class="text-center text-xs text-slate-600">
-        ASE Enterprise Search · <span class="text-slate-500">{{ apiBaseUrl }}</span>
+        ASE Enterprise Search · <span class="text-slate-500">{{ baseUrl }}</span>
       </p>
     </footer>
   </div>
@@ -79,11 +79,12 @@ import AppHeader from '@/components/AppHeader.vue'
 import SearchInput from '@/components/SearchInput.vue'
 import SearchResults from '@/components/SearchResults.vue'
 import { useSearch } from '@/composables/useSearch'
+import { useSettings } from '@/composables/useSettings'
 
 const { results, isLoading, error, hasSearched, validationError, search, clearValidation } = useSearch()
+const { baseUrl } = useSettings()
 
 const query = ref('')
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? 'https://localhost:5066'
 
 const searchHints = ['return', 'payment', 'account', 'transfer']
 

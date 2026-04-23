@@ -5,8 +5,8 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["ASE.EnterpriseApi/ASE.EnterpriseApi.csproj", "ASE.EnterpriseApi/"]
-COPY ["ASE.Libraries/ASE.Libraries.csproj", "ASE.Libraries/"]
+COPY ["ASE.EnterpriseApi/", "ASE.EnterpriseApi/"]
+COPY ["ASE.Libraries/", "ASE.Libraries/"]
 RUN dotnet restore "ASE.EnterpriseApi/ASE.EnterpriseApi.csproj"
 COPY . .
 WORKDIR "/src/ASE.EnterpriseApi"
