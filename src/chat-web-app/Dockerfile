@@ -6,6 +6,9 @@ RUN npm ci
 
 COPY . .
 
+# Ensure .bin executables have execute permissions (guards against Windows host builds)
+RUN chmod +x node_modules/.bin/*
+
 # Build with a placeholder — substituted at container startup via entrypoint
 ENV VITE_API_BASE_URL=__VITE_API_BASE_URL__
 RUN npm run build
@@ -18,7 +21,8 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 ENV VITE_API_BASE_URL=http://localhost:5066
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
+# Strip Windows CRLF line endings and ensure the script is executable
+RUN sed -i 's/\r//' /docker-entrypoint.sh && chmod +x /docker-entrypoint.sh
 
 EXPOSE 80
 ENTRYPOINT ["/docker-entrypoint.sh"]
