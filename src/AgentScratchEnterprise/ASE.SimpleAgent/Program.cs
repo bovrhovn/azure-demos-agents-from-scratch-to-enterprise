@@ -3,6 +3,8 @@ using Azure.Identity;
 using Microsoft.Agents.AI;
 using Spectre.Console;
 
+AnsiConsole.MarkupLine("[blue]Simple agent example[/]");
+
 #region Environment variables
 
 var endpoint = Environment.GetEnvironmentVariable("ENDPOINT");

@@ -1,5 +1,12 @@
+using System.Diagnostics;
 using ASE.Libraries.Data;
 using ASE.Libraries.Models;
+using Azure.AI.OpenAI;
+using Azure.Identity;
+using Microsoft.Agents.AI;
+using Microsoft.Agents.AI.Workflows;
+using Microsoft.Extensions.AI;
+using ModelContextProtocol.Client;
 
 namespace ASE.Libraries.Search;
 
@@ -32,13 +39,14 @@ public class DocumentSearchAdapter : ISearchService
                        "Refunds are issued to the original payment method within 5 business days of inspection."
             });
         }
-        
+
         //if we are searching for an amount, get all transactions from bank, which are bigger than 1000
         if (query.Contains("amount", StringComparison.OrdinalIgnoreCase))
         {
             var dataWithStatements = BankDataGenerator.GenerateBankDataWithStatementList(records);
-            var transactionsAbove1k = dataWithStatements.MaxBy(currentStatement => 
-                currentStatement.Statement.Transactions.MaxBy(currentTransaction => currentTransaction.Amount)?.Amount > 1000);
+            var transactionsAbove1k = dataWithStatements.MaxBy(currentStatement =>
+                currentStatement.Statement.Transactions.MaxBy(currentTransaction => currentTransaction.Amount)?.Amount >
+                1000);
             foreach (var transaction in transactionsAbove1k.Statement.Transactions)
             {
                 list.Add(new SearchResult
@@ -55,8 +63,69 @@ public class DocumentSearchAdapter : ISearchService
         return list;
     }
 
-    public Task<List<SearchResult>> AdvancedSearch(string query, int records = 10)
+    public async Task<List<SearchResult>> AdvancedSearch(string query, int records = 10)
     {
-        throw new NotImplementedException();
+        #region Environment variables
+
+        var endpoint = Environment.GetEnvironmentVariable("AzureFoundryEndpoint");
+        ArgumentException.ThrowIfNullOrEmpty(endpoint, "Endpoint environment variable is not set.");
+        var deploymentName = Environment.GetEnvironmentVariable("DeploymentName");
+        ArgumentException.ThrowIfNullOrEmpty(deploymentName, "DeploymentName environment variable is not set.");
+        var mcpEndpoint = Environment.GetEnvironmentVariable("McpEndpoint");
+        ArgumentException.ThrowIfNullOrEmpty(mcpEndpoint, "McpEndpoint environment variable is not set.");
+        var translationLanguage = Environment.GetEnvironmentVariable("Language");
+        ArgumentException.ThrowIfNullOrEmpty(translationLanguage, "Language environment variable is not set.");
+
+        #endregion
+
+        var credentials = new DefaultAzureCredential();
+        IChatClient client =
+            new ChatClientBuilder(
+                    new AzureOpenAIClient(new Uri(endpoint), credentials)
+                        .GetChatClient(deploymentName)
+                        .AsIChatClient())
+                .Build();
+        var transport = new HttpClientTransport(
+            new HttpClientTransportOptions
+            {
+                Name = "My Business Api Search",
+                Endpoint = new Uri(mcpEndpoint)
+            });
+        var mcpClient = await McpClient.CreateAsync(transport);
+        var tools = await mcpClient.ListToolsAsync();
+        //agent with tools
+        var searchClient = client.AsAIAgent(
+            instructions: "You are a friendly assistant. Keep your answers brief.",
+            name: "SimpleAgentWithMCP",
+            tools: [..tools]);
+        //translation agent
+        var translationAgent = new ChatClientAgent(client,
+            $"You are a translation assistant who only responds in {translationLanguage}. " +
+            "Translate only text property.");
+
+        //build sequential workflow
+        var workflow = AgentWorkflowBuilder.BuildSequential(searchClient, translationAgent);
+        var messages = new List<ChatMessage> { new(ChatRole.User, query) };
+        
+        await using StreamingRun run = await InProcessExecution.RunStreamingAsync(workflow, messages);
+        await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
+
+        List<ChatMessage> result = [];
+        await foreach (WorkflowEvent evt in run.WatchStreamAsync())
+        {
+            if (evt is WorkflowOutputEvent outputEvt)
+            {
+                result = outputEvt.As<List<ChatMessage>>()!;
+                break;
+            }
+        }
+        
+        var list  = new List<SearchResult>();
+        foreach (var message in result)
+        {
+            Debug.WriteLine($"[blue]{message.Role}[/]: [red]{message.Text}[/]");
+        }
+
+        return list;
     }
 }

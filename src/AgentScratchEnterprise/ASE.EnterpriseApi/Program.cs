@@ -6,6 +6,8 @@ using ASE.Libraries.Search;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.HttpOverrides;
 
+#region Server Configuration
+
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(settings => settings.AddServerHeader = false);
 builder.Services.AddTransient<ILogger>(p =>
@@ -15,8 +17,6 @@ builder.Services.AddTransient<ILogger>(p =>
 });
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto);
-builder.Services.AddMemoryCache();
-
 builder.Services.AddOptions<CorsOptions>()
     .BindConfiguration(CorsOptions.SectionName)
     .ValidateDataAnnotations()
@@ -28,7 +28,7 @@ builder.Services.AddOptions<SearchOptions>()
     .ValidateOnStart();
 
 var corsConfig = builder.Configuration.GetSection(CorsOptions.SectionName).Get<CorsOptions>()
-    ?? throw new InvalidOperationException("Cors configuration section is missing.");
+                 ?? throw new InvalidOperationException("Cors configuration section is missing.");
 
 builder.Services.AddCors(options =>
 {
@@ -42,6 +42,17 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddHealthChecks();
 
+#endregion
+
+#region MCP configuration
+
+builder.Services
+    .AddMcpServer()
+    .WithHttpTransport(o => o.Stateless = true)
+    .WithToolsFromAssembly();
+
+#endregion
+
 var searchConfig = builder.Configuration.GetSection(SearchOptions.SectionName).Get<SearchOptions>()
     ?? throw new InvalidOperationException("Search configuration section is missing.");
 
@@ -49,6 +60,8 @@ if (searchConfig.Environment.Equals("LOCAL", StringComparison.OrdinalIgnoreCase)
     builder.Services.AddScoped<ISearchService, DocumentSearchAdapter>();
 else
     builder.Services.AddScoped<ISearchService, AzureSearchDocumentSearchAdapter>();
+
+#region Run Configuration
 
 var app = builder.Build();
 app.UseForwardedHeaders();
@@ -74,7 +87,11 @@ app.UseExceptionHandler(options =>
     });
 });
 app.MapHealthChecks("/health");
+app.MapMcp("/mcp");
 app.Run();
+
+#endregion
+
 namespace ASE.EnterpriseApi
 {
     public partial class Program { }
