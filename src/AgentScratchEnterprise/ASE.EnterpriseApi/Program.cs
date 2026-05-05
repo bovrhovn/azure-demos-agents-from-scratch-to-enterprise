@@ -57,9 +57,13 @@ var searchConfig = builder.Configuration.GetSection(SearchOptions.SectionName).G
     ?? throw new InvalidOperationException("Search configuration section is missing.");
 
 if (searchConfig.Environment.Equals("LOCAL", StringComparison.OrdinalIgnoreCase))
+{
     builder.Services.AddScoped<ISearchService, DocumentSearchAdapter>();
+}
 else
+{
     builder.Services.AddScoped<ISearchService, AzureSearchDocumentSearchAdapter>();
+}
 
 #region Run Configuration
 
