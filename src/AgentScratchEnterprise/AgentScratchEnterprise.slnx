@@ -8,6 +8,8 @@
     <Project Path="ASE.SimpleAgentMcp/ASE.SimpleAgentMcp.csproj" />
     <Project Path="ASE.SimpleAgentSearch/ASE.SimpleAgentSearch.csproj" />
   </Folder>
-  <Project Path="../../tests/ASE.Libraries.Tests/ASE.Libraries.Tests.csproj" />
-  <Project Path="../../tests/ASE.EnterpriseApi.Tests/ASE.EnterpriseApi.Tests.csproj" />
+  <Folder Name="/Tests/">
+    <Project Path="../../tests/ASE.EnterpriseApi.Tests/ASE.EnterpriseApi.Tests.csproj" />
+    <Project Path="../../tests/ASE.Libraries.Tests/ASE.Libraries.Tests.csproj" />
+  </Folder>
 </Solution>
