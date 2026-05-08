@@ -45,4 +45,5 @@ var question = AnsiConsole.Ask<string>("Ask your question",
     "What is the return policy for Contoso?");
 AnsiConsole.MarkupLine("[green]Question:[/]" + question);
 var answer = await agent.RunAsync(question);
-AnsiConsole.MarkupLine("[green]Answer:[/]" + answer);
+AnsiConsole.MarkupLine("[green]Answer:[/]");
+AnsiConsole.WriteLine(answer.Text);

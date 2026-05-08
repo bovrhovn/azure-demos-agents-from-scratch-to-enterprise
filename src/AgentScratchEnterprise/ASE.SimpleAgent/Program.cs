@@ -23,4 +23,5 @@ var question = AnsiConsole.Ask<string>("Ask your question",
     "What is the 2nd largest city in Poland by population size?");
 AnsiConsole.MarkupLine("[green]Question:[/]" + question);
 var answer = await agent.RunAsync(question);
-AnsiConsole.MarkupLine("[green]Answer:[/]" + answer);
+AnsiConsole.MarkupLine("[green]Answer:[/]");
+AnsiConsole.WriteLine(answer.Text);
